@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Gallery - Thư viện ảnh</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            margin: 0 auto 30px;
+            max-width: 1200px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.2em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 12px;
+            padding: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+        }
+
+        .input-group input {
+            border: none;
+            padding: 12px 15px;
+            font-size: 16px;
+            border-radius: 8px;
+            flex: 1;
+            outline: none;
+        }
+
+        .input-group button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .input-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 0 auto 30px;
+            max-width: 1200px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .stats-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+            margin-top: 5px;
+        }
+
+        .gallery-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading i {
+            font-size: 3em;
+            color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading h3 {
+            margin-top: 20px;
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 20px 0;
+        }
+
+        .gallery-item {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            overflow: hidden;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.4s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8));
+            opacity: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2em;
+        }
+
+        .gallery-item:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .image-info {
+            padding: 20px;
+        }
+
+        .image-info h4 {
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .image-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .image-date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .image-size {
+            background: #f0f2f5;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8em;
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .lightbox-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 80%;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: zoomIn 0.4s ease;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .lightbox-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 15px 25px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .lightbox-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .lightbox-info {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            max-width: 80%;
+        }
+
+        .lightbox-info h3 {
+            margin-bottom: 5px;
+            font-size: 1.2em;
+            word-break: break-all;
+        }
+
+        .lightbox-info p {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-state i {
+            font-size: 5em;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+
+        .error-state {
+            background: rgba(220, 53, 69, 0.1);
+            border: 2px solid rgba(220, 53, 69, 0.2);
+            color: #721c24;
+        }
+
+        .error-state i {
+            color: #dc3545;
+        }
+
+        .scroll-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1000;
+        }
+
+        .scroll-to-top:hover {
+            transform: translateY(-3px) scale(1.1);
+        }
+
+        .scroll-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px;
+                margin: 0 10px 20px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .input-group {
+                min-width: 100%;
+            }
+
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+            }
+
+            .stats {
+                margin: 0 10px 20px;
+                padding: 15px;
+            }
+
+            .gallery-container {
+                padding: 0 10px;
+            }
+
+            .lightbox-controls {
+                bottom: 20px;
+                padding: 10px 20px;
+                flex-wrap: wrap;
+            }
+
+            .lightbox-close {
+                top: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .lightbox img {
+                max-width: 95%;
+                max-height: 70%;
+            }
+
+            .lightbox-info {
+                bottom: 100px;
+                max-width: 90%;
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1><i class="fas fa-images"></i> Cloud Gallery</h1>
+            <div class="header-controls">
+                <div class="input-group">
+                    <input type="email" 
+                           id="emailInput" 
+                           placeholder="Nhập email để xem ảnh..." 
+                           value="">
+                    <button id="loadBtn">
+                        <i class="fas fa-search"></i> Tải
+                    </button>
+                </div>
+                <a href="index.html" class="btn">
+                    <i class="fas fa-plus"></i> Upload
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats" id="stats" style="display: none;">
+        <div class="stats-content">
+            <div class="stat-item">
+                <span class="stat-number" id="totalImages">0</span>
+                <div class="stat-label">Tổng ảnh</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="totalSize">0 MB</span>
+                <div class="stat-label">Dung lượng</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="userEmail">-</span>
+                <div class="stat-label">Tài khoản</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gallery-container">
+        <div id="galleryContent">
+            <div class="loading">
+                <i class="fas fa-spinner"></i>
+                <h3>Khởi tạo gallery...</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="closeLightbox">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <img id="lightboxImage" src="" alt="">
+            
+            <div class="lightbox-info" id="lightboxInfo">
+                <h3 id="lightboxTitle">Tên file</h3>
+                <p id="lightboxMeta">Thông tin file</p>
+            </div>
+            
+            <div class="lightbox-controls">
+                <button class="lightbox-btn" id="prevBtn" title="Ảnh trước">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="lightbox-btn" id="downloadBtn" title="Tải xuống">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="lightbox-btn" id="nextBtn" title="Ảnh tiếp">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <button class="scroll-to-top" id="scrollToTop">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <script>
+        const API_BASE = "https://978b6f104133.ngrok-free.app";
+        
+        // Elements
+        const emailInput = document.getElementById('emailInput');
+        const loadBtn = document.getElementById('loadBtn');
+        const galleryContent = document.getElementById('galleryContent');
+        const stats = document.getElementById('stats');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxTitle = document.getElementById('lightboxTitle');
+        const lightboxMeta = document.getElementById('lightboxMeta');
+        const closeLightbox = document.getElementById('closeLightbox');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const scrollToTop = document.getElementById('scrollToTop');
+        
+        let images = [];
+        let currentIndex = 0;
+
+        // gallery.html - Replace the loadImages function with this
+        async function loadImages(email) {
+        if (!email || !email.trim()) {
+            showEmptyState('Vui lòng nhập email để xem gallery');
+            return;
+        }
+
+        const trimmedEmail = email.trim().toLowerCase();
+        if (!trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
+            showErrorState('Email không hợp lệ');
+            return;
+        }
+
+        // Show loading
+        galleryContent.innerHTML = `
+            <div class="loading">
+            <i class="fas fa-spinner"></i>
+            <h3>Đang tải ảnh...</h3>
+            </div>
+        `;
+        stats.style.display = 'none';
+
+        // Set a timeout for the API call
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
+
+        try {
+            console.log('Loading images for:', trimmedEmail);
+            const response = await fetch(`${API_BASE}/api/images?email=${encodeURIComponent(trimmedEmail)}`, {
+            signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('API response:', data);
+
+            if (!data.ok) {
+            throw new Error(data.msg || 'Lỗi khi tải ảnh');
+            }
+
+            images = data.items || [];
+            
+            if (images.length === 0) {
+            showEmptyState(
+                'Không tìm thấy ảnh nào cho email này', 
+                'Hãy upload một số ảnh trước nhé!'
+            );
+            return;
+            }
+
+            displayImages();
+            updateStats(data);
+
+        } catch (error) {
+            clearTimeout(timeoutId);
+            console.error('Error loading images:', error);
+            
+            if (error.name === 'AbortError') {
+            showErrorState('Tải ảnh mất quá nhiều thời gian. Vui lòng thử lại.');
+            } else {
+            showErrorState(`Lỗi tải ảnh: ${error.message}`);
+            }
+        }
+        }
+
+        function displayImages() {
+            const gallery = document.createElement('div');
+            gallery.className = 'gallery';
+
+            images.forEach((image, index) => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.style.animationDelay = `${index * 0.1}s`;
+                
+                item.innerHTML = `
+                    <div class="image-container">
+                        <img src="${image.url}" 
+                             alt="${image.original_name}"
+                             loading="lazy"
+                             onerror="handleImageError(this)">
+                        <div class="image-overlay">
+                            <i class="fas fa-search-plus"></i>
+                        </div>
+                    </div>
+                    <div class="image-info">
+                        <h4 title="${image.original_name}">${image.original_name}</h4>
+                        <div class="image-meta">
+                            <div class="image-date">
+                                <i class="fas fa-clock"></i>
+                                ${formatDate(image.created_at)}
+                            </div>
+                            <div class="image-size">${formatFileSize(image.file_size)}</div>
+                        </div>
+                    </div>
+                `;
+
+                item.addEventListener('click', () => openLightbox(index));
+                gallery.appendChild(item);
+            });
+
+            galleryContent.innerHTML = '';
+            galleryContent.appendChild(gallery);
+        }
+
+        function updateStats(data) {
+            document.getElementById('totalImages').textContent = data.count || 0;
+            
+            // Calculate total size
+            const totalBytes = images.reduce((sum, img) => sum + (img.file_size || 0), 0);
+            document.getElementById('totalSize').textContent = formatFileSize(totalBytes);
+            
+            // Display email (truncate if too long)
+            const email = data.user_email || emailInput.value;
+            const displayEmail = email.length > 20 ? email.substring(0, 17) + '...' : email;
+            document.getElementById('userEmail').textContent = displayEmail;
+            
+            stats.style.display = 'block';
+        }
+
+        function showEmptyState(title, subtitle = '') {
+            galleryContent.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-images"></i>
+                    <h3>${title}</h3>
+                    <p>${subtitle}</p>
+                    <a href="index.html" class="btn">
+                        <i class="fas fa-plus"></i> Upload ảnh đầu tiên
+                    </a>
+                </div>
+            `;
+            stats.style.display = 'none';
+        }
+
+        function showErrorState(message) {
+            galleryContent.innerHTML = `
+                <div class="empty-state error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Có lỗi xảy ra</h3>
+                    <p>${message}</p>
+                    <button class="btn" onclick="location.reload()">
+                        <i class="fas fa-refresh"></i> Thử lại
+                    </button>
+                </div>
+            `;
+            stats.style.display = 'none';
+        }
+
+        function openLightbox(index) {
+            if (images.length === 0) return;
+            
+            currentIndex = index;
+            updateLightboxContent();
+            lightbox.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+        }
+
+        function closeLightboxFunc() {
+            lightbox.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function updateLightboxContent() {
+            if (images.length === 0) return;
+            
+            const image = images[currentIndex];
+            lightboxImage.src = image.url;
+            lightboxImage.onerror = () => {
+                lightboxImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjBGMkY1Ii8+CjxwYXRoIGQ9Ik0yMCAzMEMyNS41MjI5IDMwIDMwIDI1LjUyMjkgMzAgMjBTMjUuNTIyOSAxMCAyMCAxMFMxMCAxNC40NzcxIDEwIDIwUzE0LjQ3NzEgMzAgMjAgMzBaIiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0xNC4yMjk5IDI1LjIzMDFMMjUuMjMgMTQuMjMiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8L3N2Zz4=';
+            };
+            
+            lightboxTitle.textContent = image.original_name;
+            lightboxMeta.textContent = `${formatFileSize(image.file_size)} • ${formatDate(image.created_at)}`;
+            
+            // Update download button
+            downloadBtn.onclick = () => downloadImage(image);
+            
+            // Update navigation buttons visibility
+            prevBtn.style.opacity = images.length <= 1 ? '0.3' : '1';
+            nextBtn.style.opacity = images.length <= 1 ? '0.3' : '1';
+            prevBtn.style.cursor = images.length <= 1 ? 'not-allowed' : 'pointer';
+            nextBtn.style.cursor = images.length <= 1 ? 'not-allowed' : 'pointer';
+        }
+
+        function showNextImage() {
+            if (images.length <= 1) return;
+            currentIndex = (currentIndex + 1) % images.length;
+            updateLightboxContent();
+        }
+
+        function showPrevImage() {
+            if (images.length <= 1) return;
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            updateLightboxContent();
+        }
+
+        async function downloadImage(image) {
+            const downloadBtn = document.getElementById('downloadBtn');
+            const originalIcon = downloadBtn.innerHTML;
+
+            // Hiển thị trạng thái đang tải
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            downloadBtn.disabled = true;
+
+            try {
+                // Dùng fetch để lấy dữ liệu ảnh
+                const response = await fetch(image.url);
+                if (!response.ok) {
+                    throw new Error(`Lỗi mạng: ${response.statusText}`);
+                }
+
+                // Chuyển dữ liệu thành Blob
+                const blob = await response.blob();
+
+                // Tạo một URL tạm thời cho Blob
+                const objectUrl = URL.createObjectURL(blob);
+
+                // Tạo thẻ <a> ẩn để kích hoạt download
+                const link = document.createElement('a');
+                link.href = objectUrl;
+                // Đảm bảo tên file tải về là tên gốc, có cả đuôi file
+                link.download = image.original_name || 'downloaded-image'; 
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Giải phóng bộ nhớ bằng cách xóa object URL
+                URL.revokeObjectURL(objectUrl);
+
+            } catch (error) {
+                console.error('Lỗi khi tải xuống:', error);
+                // Nếu có lỗi, quay về phương pháp cũ là mở trong tab mới
+                window.open(image.url, '_blank');
+                alert('Không thể tự động tải xuống. Ảnh sẽ được mở trong một tab mới.');
+            } finally {
+                // Khôi phục lại trạng thái ban đầu của nút bấm
+                downloadBtn.innerHTML = originalIcon;
+                downloadBtn.disabled = false;
+            }
+        }
+
+        function handleImageError(img) {
+            const container = img.parentElement;
+            if (container && container.classList.contains('image-container')) {
+                container.innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#f8f9fa;color:#6c757d;padding:20px;text-align:center;">
+                        <i class="fas fa-exclamation-triangle" style="font-size:2em;margin-bottom:10px;"></i>
+                        <div>Không thể tải ảnh</div>
+                    </div>
+                `;
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Không rõ';
+            
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return 'Không rõ';
+                
+                const now = new Date();
+                const diffMs = now - date;
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) {
+                    return 'Hôm nay';
+                } else if (diffDays === 1) {
+                    return 'Hôm qua';
+                } else if (diffDays < 7) {
+                    return `${diffDays} ngày trước`;
+                } else if (diffDays < 30) {
+                    const weeks = Math.floor(diffDays / 7);
+                    return `${weeks} tuần trước`;
+                } else {
+                    return date.toLocaleDateString('vi-VN');
+                }
+            } catch (error) {
+                console.error('Date formatting error:', error);
+                return 'Không rõ';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // Event listeners
+        loadBtn.addEventListener('click', () => {
+            const email = emailInput.value.trim();
+            if (email) {
+                loadImages(email);
+                // Update URL with email parameter
+                const url = new URL(window.location);
+                url.searchParams.set('email', email);
+                window.history.replaceState({}, '', url);
+            } else {
+                showEmptyState('Vui lòng nhập email để xem gallery');
+            }
+        });
+
+        emailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loadBtn.click();
+            }
+        });
+
+        // Lightbox event listeners
+        closeLightbox.addEventListener('click', closeLightboxFunc);
+        prevBtn.addEventListener('click', showPrevImage);
+        nextBtn.addEventListener('click', showNextImage);
+
+        // Close lightbox when clicking on background
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                closeLightboxFunc();
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (lightbox.style.display === 'block') {
+                switch(e.key) {
+                    case 'Escape':
+                        closeLightboxFunc();
+                        break;
+                    case 'ArrowLeft':
+                        showPrevImage();
+                        break;
+                    case 'ArrowRight':
+                        showNextImage();
+                        break;
+                }
+            }
+        });
+
+        // Touch/swipe support for mobile
+        // let touchStartX = 0;
+        // let touchEndX = 0;
+
+        // lightbox.addEventListener('touchstart', (e) => {
+        //     touchStartX = e.changedTouches[0].screenX;
+        // }, { passive: true });
+
+        // lightbox.addEventListener('touchend', (e) => {
+        //     touchEndX = e.changedTouches[0].screenX;
+        //     const diff = touchStartX - touchEndX;
+            
+        //     if (Math.abs(diff) > 50) { // Minimum swipe distance
+        //         if (diff > 0) {
+        //             showNextImage(); // Swipe left - next image
+        //         } else {
+        //             showPrevImage(); // Swipe right - previous image
+        //         }
+        //     }
+        // }, { passive: true });
+
+        // Scroll to top functionality
+        scrollToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Show/hide scroll to top button
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollToTop.classList.add('show');
+            } else {
+                scrollToTop.classList.remove('show');
+            }
+        });
+
+        // Auto-load from URL parameter
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const emailFromUrl = urlParams.get('email');
+            
+            if (emailFromUrl) {
+                emailInput.value = emailFromUrl;
+                loadImages(emailFromUrl);
+            } else {
+                showEmptyState(
+                    'Chào mừng đến với Cloud Gallery!', 
+                    'Nhập email của bạn để xem những hình ảnh đã upload.'
+                );
+            }
+
+            // Add entrance animation to page
+            const header = document.querySelector('.header');
+            header.style.opacity = '0';
+            header.style.transform = 'translateY(-30px)';
+            
+            setTimeout(() => {
+                header.style.transition = 'all 0.6s ease';
+                header.style.opacity = '1';
+                header.style.transform = 'translateY(0)';
+            }, 100);
+        });
+
+        // Auto-focus email input when page loads
+        emailInput.focus();
+
+        // Prevent image dragging in lightbox
+        lightboxImage.addEventListener('dragstart', (e) => {
+            e.preventDefault();
+        });
+
+        // Add loading state to images
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'IMG' && e.target.closest('.gallery-item')) {
+                const overlay = e.target.parentElement.querySelector('.image-overlay');
+                if (overlay) {
+                    const originalContent = overlay.innerHTML;
+                    overlay.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    
+                    // Reset after a short delay
+                    setTimeout(() => {
+                        overlay.innerHTML = originalContent;
+                    }, 1000);
+                }
+            }
+        });
+
+        // Lazy loading optimization with intersection observer
+        const imageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                        imageObserver.unobserve(img);
+                    }
+                }
+            });
+        }, {
+            rootMargin: '50px'
+        });
+
+        // Performance optimization: debounce scroll events
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Optimized scroll handler
+        const optimizedScrollHandler = debounce(() => {
+            if (window.pageYOffset > 300) {
+                scrollToTop.classList.add('show');
+            } else {
+                scrollToTop.classList.remove('show');
+            }
+        }, 10);
+
+        window.addEventListener('scroll', optimizedScrollHandler);
+
+        // Add error boundary for JavaScript errors
+        window.addEventListener('error', (e) => {
+            console.error('JavaScript error:', e.error);
+            if (galleryContent.innerHTML.includes('fa-spinner')) {
+                showErrorState('Có lỗi xảy ra khi tải trang. Vui lòng thử lại.');
+            }
+        });
+
+        // Service worker registration for caching (optional)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // Add right-click context menu prevention for images
+        document.addEventListener('contextmenu', (e) => {
+            if (e.target.tagName === 'IMG' && e.target.closest('.lightbox')) {
+                e.preventDefault();
+            }
+        });
+
+        // Memory cleanup when page unloads
+        window.addEventListener('beforeunload', () => {
+            images = [];
+            if (lightbox.style.display === 'block') {
+                closeLightboxFunc();
+            }
+        });
+
+        // Debug logging
+        console.log('Gallery page loaded successfully');
+        console.log('API Base:', API_BASE);
+
+        // Global error handler for fetch requests
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            return originalFetch.apply(this, args)
+                .then(response => {
+                    if (!response.ok && response.status >= 500) {
+                        console.error('Server error:', response.status);
+                    }
+                    return response;
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    throw error;
+                });
+        };
+
+        // Make functions available globally for debugging
+        window.galleryDebug = {
+            loadImages,
+            images: () => images,
+            currentIndex: () => currentIndex,
+            stats: () => ({
+                totalImages: images.length,
+                currentEmail: emailInput.value
+            })
+        };
+    </script>
+</body>
+
+</html>
