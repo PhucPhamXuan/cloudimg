@@ -833,51 +833,55 @@
             currentIndex = (currentIndex - 1 + images.length) % images.length;
             updateLightboxContent();
         }
-
+        function toHttps(url) {
+            if (!url) return url;
+            return url.replace(/^http:\/\//i, "https://");
+        }
         async function downloadImage(image) {
             const downloadBtn = document.getElementById('downloadBtn');
             const originalIcon = downloadBtn.innerHTML;
-
+        
             // Hiển thị trạng thái đang tải
             downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             downloadBtn.disabled = true;
-
+        
             try {
+                const httpsUrl = toHttps(image.url);
+        
                 // Dùng fetch để lấy dữ liệu ảnh
-                const response = await fetch(image.url);
+                const response = await fetch(httpsUrl);
                 if (!response.ok) {
                     throw new Error(`Lỗi mạng: ${response.statusText}`);
                 }
-
+        
                 // Chuyển dữ liệu thành Blob
                 const blob = await response.blob();
-
+        
                 // Tạo một URL tạm thời cho Blob
                 const objectUrl = URL.createObjectURL(blob);
-
+        
                 // Tạo thẻ <a> ẩn để kích hoạt download
                 const link = document.createElement('a');
                 link.href = objectUrl;
-                // Đảm bảo tên file tải về là tên gốc, có cả đuôi file
                 link.download = image.original_name || 'downloaded-image'; 
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-
+        
                 // Giải phóng bộ nhớ bằng cách xóa object URL
                 URL.revokeObjectURL(objectUrl);
-
+        
             } catch (error) {
                 console.error('Lỗi khi tải xuống:', error);
                 // Nếu có lỗi, quay về phương pháp cũ là mở trong tab mới
-                window.open(image.url, '_blank');
+                window.open(toHttps(image.url), '_blank');
                 alert('Không thể tự động tải xuống. Ảnh sẽ được mở trong một tab mới.');
             } finally {
-                // Khôi phục lại trạng thái ban đầu của nút bấm
                 downloadBtn.innerHTML = originalIcon;
                 downloadBtn.disabled = false;
             }
         }
+
 
         function handleImageError(img) {
             const container = img.parentElement;
